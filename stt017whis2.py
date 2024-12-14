@@ -4,7 +4,7 @@ import wave
 import streamlit as st
 from audio_recorder_streamlit import audio_recorder
 from openai import OpenAI
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
 #api_key = st.secrets["openai"]["api_key"]
 
