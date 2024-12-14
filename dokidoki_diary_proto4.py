@@ -203,6 +203,22 @@ with tab1:
     image_url = response.data[0].url
     st.image(image_url, width=300, use_container_width=False)  # use_container_width=False に設定（幅を固定）
 
+    conn = sqlite3.connect('dokidoki_diary.db')
+    cur = conn.cursor()
+
+    data = (1, selected_date, diary_input, feedback_comment, image_url)
+        
+
+    cur.execute(
+        "INSERT INTO Diary_table (user_id, date, diary, feedback, illustration) VALUES (?,?,?,?,?)",
+        data
+    )
+
+    conn.commit()
+    conn.close()
+
+
+
 # タブ2: 振り返りページ
 with tab2:
     st.markdown("### ふりかえりページ")
