@@ -71,14 +71,14 @@ with st.sidebar:
             selected_weather = convert_weather_text(raw_weather_text)
             st.session_state.weather_info = selected_weather
             # 今日の天気表示
-            st.write(f"**今日は {selected_weather}、**")
+            st.write(f"**Today：{selected_weather}**")
 
             # 明日の天気表示
             if delta_days < 2:  # 明日のデータがある場合
                 next_day_forecast_data = weather_json['forecasts'][delta_days+1]
                 next_day_raw = next_day_forecast_data["telop"]
                 next_day_converted = convert_weather_text(next_day_raw)
-                st.write(f"**明日は {next_day_converted}やな**")
+                st.write(f"**Tomorrow：{next_day_converted}**")
             else:
                 next_day_converted = None
         else:
@@ -99,8 +99,6 @@ with st.sidebar:
         "今日はどんな気分？",
         list(options.keys())
     )
-    # 気分を表示
-    st.write("おっけー！任しとき！")
 
 # 左上のロゴ（さやさんデザインを仮で使用）
 st.image(
@@ -217,10 +215,10 @@ with tab1:
     conn = sqlite3.connect('dokidoki_diary.db')
     cur = conn.cursor()
 
-    data = (1, selected_date, diary_input, feedback_comment, image_url)
+    data = (1, selected_date, diary_input, feedback_comment)
         
     cur.execute(
-        "INSERT INTO Diary_table (user_id, date, diary, feedback, illustration) VALUES (?,?,?,?,?)",
+        "INSERT INTO Diary_table (user_id, date, diary, feedback) VALUES (?,?,?,?)",
         data
     )
 
