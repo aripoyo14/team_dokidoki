@@ -1,0 +1,10 @@
+streamlit
+pandas
+requests
+datetime
+openai >=1.0.0
+sqlite3
+wave
+audio_recorder_streamlit
+stt017whis2
+
