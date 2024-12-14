@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import os
 from openai import OpenAI
 from stt017whis2 import get_recognized_text
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 import pandas as pd
 import sqlite3
 
