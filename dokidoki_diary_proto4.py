@@ -133,8 +133,7 @@ with tab1:
             # イメージ画像は直接パスで持ってきている（相対だとうまく反映されなかった※課題）
             personality_prompt = f"""あなたは日本のお笑い芸人『徳井義実』として、{option} ユーザーに対してコメントを作成してください。"""
             face_image_path = "images_master/tokui.png"
-            
-            
+                        
             # ここからはフィードバック自体のプロンプトを指定
             # 日記の要約・天気情報・2名のパーソナルプロンプトからコメントするように指示
             # 天気は必ずしもフィードバックに使用しなくても良いとも補足
@@ -157,7 +156,7 @@ with tab1:
             以上を踏まえ、ユーザーを励ますコメントを作成してください。
             """
 
-            # フィドバックを生成する（同様にMAX1000）
+            # フィードバックを生成する（同様にMAX1000）
             feedback_response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -203,12 +202,12 @@ with tab1:
     image_url = response.data[0].url
     st.image(image_url, width=300, use_container_width=False)  # use_container_width=False に設定（幅を固定）
 
+    # 日記の内容をデータベースに格納
     conn = sqlite3.connect('dokidoki_diary.db')
     cur = conn.cursor()
 
     data = (1, selected_date, diary_input, feedback_comment, image_url)
         
-
     cur.execute(
         "INSERT INTO Diary_table (user_id, date, diary, feedback, illustration) VALUES (?,?,?,?,?)",
         data
@@ -216,7 +215,6 @@ with tab1:
 
     conn.commit()
     conn.close()
-
 
 
 # タブ2: 振り返りページ
