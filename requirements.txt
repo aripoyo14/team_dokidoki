@@ -5,4 +5,5 @@ datetime
 openai >=1.0.0
 wave
 audio_recorder_streamlit
-
+sqlite3
+base64
