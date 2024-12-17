@@ -1,31 +1,16 @@
-# dokidoki_diary_proto3.py
+
+#　１）base64をインポート
+import os
+import openai
 import streamlit as st
 import requests
 from datetime import datetime, timedelta
-import os
-from openai import OpenAI
-from stt017whis2 import get_recognized_text
-#from dotenv import load_dotenv
 import pandas as pd
 import sqlite3
 import base64
 
-# OpenAIクライアントの初期化（初期化って何だ？）
-#api_key = st.secrets["openai"]["api_key"]
-#client = OpenAI(api_key=api_key)
-
-### 環境変数でOpenAI APIを使用するパターン
-client = OpenAI()
-
-### .envファイルでOpenAI APIを使用するパターン
-## .envファイルの内容を読み込む
-## load_dotenv()
-
-## 環境変数OPENAI_API_KEYを取得
-## openai_api_key = os.environ.get('OPENAI_API_KEY')
-
-## OpenAIクライアントの初期化
-## client = OpenAI(api_key=openai_api_key)
+# API Keyをtxtフォルダに格納しPathを指定
+# openai.api_key_path = "/Users/ikedasayaka/Desktop/Tech0 Boot Camp/Step2-2/03_webアプリ作成/dokidoki_diary/Saya/api_key.txt"
 
 # データベースファイルパス
 db_path = "dokidoki_diary.db"
@@ -182,13 +167,11 @@ with st.container():
 
     # カラム2: 気分選択
     with col2:
-        options = {
-    "癒してほしい": "優しい口調でユーザに共感し、心が軽くなるようなコメントをしてください。具体的なアドバイスはせずに、共感をしつつも、「徳井義実」というキャラの良さが反映されたコメントをしてください。",
-    "励ましてほしい": "明るい口調でユーザに共感し、ユーザが前向きになれるような具体的なアドバイスをしてください",
-    "喝を入れてほしい": "ユーザの状況や心情に対して、少し毒舌要素のある関西弁のツッコミを入れつつ、力強い言葉でユーザーを奮い立たせるようなコメントをしてください。",
-    }
-        # Streamlit セレクトボックスで気分を選択
-        option = st.selectbox("Select Mode", list(options.keys()), key='select_mode')
+        option = st.selectbox(
+            "Select Mode",
+            ("癒されたい", "なぐさめてほしい", "喝を入れてほしい！"),
+            key='select_mode'
+        )
     
     
     # ここから天気予報
@@ -256,123 +239,89 @@ with st.container():
         ''',
         unsafe_allow_html=True
      )
+
 ##############################
-# タブ1　フィードバックページ
+# タブ２　振り返りページ
 ##############################
 tab1, tab2 = st.tabs(["Make a Diary", "Record of Memories"])
 
-# タブ1（今日の日記ページ）に日記を入力する
+# タブ1（今日の日記ページ）
 with tab1:
-
-    # 子モジュールから音声認識結果を取得
-    recognized_text = get_recognized_text()
-
-    # 日記を入力する欄を入れる。openaiに渡したり、日記内容を反映した画像と合わせて日記を表示するためにdiary_inputに日記内容を代入する。
-    diary_input = st.text_area(
-        "ちょっと違うところは手で修正してね。ごめんね。", 
+    day_text = st.text_area(
+        "ここに自由に書いてね",
         height=150,
-        placeholder="",
-        value=recognized_text  # 音声認識結果をデフォルト値として設定
+        placeholder="例：今日は朝から目覚めが良くて、気持ちのいい1日だった..."
     )
+    is_submitted = st.button("F i n i s h")
 
-    # 送信ボタンを入れる
-    submit_btn = st.button("F i n i s h")
-
-    # 送信ボタンが押されると以下の処理が走る
-    if submit_btn:
-        
-        # フィードバックの出力前にフィードバックに使用するプロンプトをそれぞれoptionで指定
-            # イメージ画像は直接パスで持ってきている（相対だとうまく反映されなかった※課題）
-            personality_prompt = f"""あなたは日本のお笑い芸人チュートリアルの『徳井義実』です。京都府出身で、関西弁口調で話します。"""
+    if day_text.strip() and is_submitted:
+        # フィードバック用のプロンプトを気分(option)で分岐
+        if option in ["癒されたい", "なぐさめてほしい"]:
+            # 徳井さん
+            personality_prompt = "あなたは日本のお笑い芸人『徳井義実』として、優しく柔らかい言葉でユーザーを癒し、前向きな気持ちになれるコメントを作成してください。"
             face_image_path = "images_master/tokui.png"
-                        
-            #選択した気分をプロンプトに反映させる
-            mood_prompt = options[option]
-            
-            # 天気がない場合は '不明' とする
-            selected_weather = weather_today if weather_today else '不明'
-            
-            # ここからはフィードバック自体のプロンプトを指定
-            # 日記の要約・天気情報・2名のパーソナルプロンプトからコメントするように指示
-            # 天気は必ずしもフィードバックに使用しなくても良いとも補足
-            feedback_prompt = f"""
-            以下はユーザーの日記内容の要約と、その日の埼玉の天気です。
+        else:
+            # マツコさん
+            personality_prompt = "あなたはタレント『マツコ・デラックス』として、率直で時に辛口だがユーザーを思いやる、でも少し強めに喝を入れるコメントを作成してください。"
+            face_image_path = "images_master/matsuko.png"
 
-            - 天気: {selected_weather if selected_weather else '不明'}
+        # 天気がない場合は '不明' とする
+        selected_weather = weather_today if weather_today else '不明'
 
-            ユーザーは毎日日記を通じて、その日の出来事や気持ちや悩みを示しています。
-            あなたの役割は、{personality_prompt}です。
-            {diary_input}というユーザーの状況や心情を理解し、{option}ユーザの気分に基づいて、{mood_prompt}
+        # フィードバックプロンプト
+        feedback_prompt = f"""
+        以下はユーザーの日記内容と、その日の埼玉の天気です。
 
-            もし天気 ({selected_weather if selected_weather else '不明'}) の状況がユーザーの気分転換や行動提案に有効に活かせる場合は、天気を考慮したアドバイスを含めてください。
-            しかし、天気を考慮しても特にユーザーの役に立たないと判断できる場合は、無理に天気に言及する必要はありません。ただし、天気情報({selected_weather if selected_weather else '不明'})をそのまま使うのではなく「晴れ」「雨」「曇り」などの話し言葉に変更して出力してください。
+        - 日記内容: {day_text}
+        - 天気: {selected_weather}
 
-            ＃制約条件
-            - {diary_input}というユーザーの状況や心情に共感してください。
-            - 天気を有効活用できそうなアイデアがあれば取り入れてください。なければ天気に関する言及は省いて構いません。
-            - {personality_prompt}の口調やキャラ設定を守った状態で回答を生成してください。
-            - {option}というユーザの気分をもとに、{mood_prompt}
+        ユーザーは日記を通じてネガティブな気持ちや悩みを示しています。
+        あなたの役割は、ユーザーを理解し、前向きな気持ちになれるようなコメントを生成することです。
 
-            以上を踏まえ、ユーザーを励ますコメントを作成してください。
-            """
+        もし天気 ({selected_weather}) の状況がユーザーの気分転換や行動提案に有効に活かせる場合は、天気を考慮したアドバイスを含めてください。
+        しかし、天気を考慮しても特にユーザーの役に立たないと判断できる場合は、無理に天気に言及する必要はありません。
+        ただし、天気情報({selected_weather})をそのまま使うのではなく「晴れ」「雨」「曇り」などの話し言葉に変更して出力してください。
 
-            # フィードバックを生成する
-            feedback_response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "user", "content": feedback_prompt}
-                ],
-                temperature=0.7,
+        ポイント:
+        - ユーザーに共感し、気持ちを軽くするような前向きな言葉をかけてください。
+        - 天気を有効活用できそうなアイデアがあれば取り入れてください。なければ天気に関する言及は省いて構いません。
+
+        {personality_prompt}
+
+        以上を踏まえ、ユーザーを励ますコメントを作成してください。
+        """
+
+        # フィードバックを生成する
+        feedback_response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "user", "content": feedback_prompt}
+            ],
+            max_tokens=1000,
+            temperature=0.7,
+        )
+        feedback_comment = feedback_response.choices[0].message.content.strip()
+
+        st.markdown("### M e s s a g e")
+
+        # 2カラム： 左に画像、右にコメント吹き出し
+        left_col, right_col = st.columns([1, 3])
+        with left_col:
+            st.image(face_image_path, width=100, caption=None)
+
+        with right_col:
+            st.markdown(
+                f"""
+                <div class="feedback-bubble">
+                    {feedback_comment}
+                </div>
+                """,
+                unsafe_allow_html=True
             )
-            feedback_comment = feedback_response.choices[0].message.content.strip()
 
-            st.markdown("### M e s s a g e")
-            # フィードバックを表示する
-            # カラムを２分割（左:徳井の画像 右:メッセージ吹き出し）
-            left_col, right_col = st.columns([1,3])
-
-            with left_col:
-                st.image(face_image_path, width=100, caption=None)
-
-            with right_col:
-                st.markdown(
-                    f"""
-                    <div class="feedback-bubble">
-                        {feedback_comment}
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-
-    # DALL-E 3で日記内容を反映したイラストを作成
-    response = client.images.generate(
-        model="dall-e-3",
-        prompt=f"ディズニー風、トイ・ストーリー風のアメリカンモダンなスタイルで、明るくカラフルな色使いと温かみのある雰囲気を持つ、以下の日記内容に基づいたスタイリッシュなイラストを作成してください。\n#text\n{diary_input}",
-        size="1792x1024",
-        quality="standard",
-        n=1,
-        ) 
-
-
-    image_url = response.data[0].url
-    st.image(image_url, width=650, use_container_width=False)  # use_container_width=False に設定（幅を固定）
-
-    # 日記の内容をデータベースに格納
-    conn = sqlite3.connect('dokidoki_diary.db')
-    cur = conn.cursor()
-
-    data = (1, selected_date, diary_input, feedback_comment)
-        
-    cur.execute(
-        "INSERT INTO Diary_table (user_id, date, diary, feedback) VALUES (?,?,?,?)",
-        data
-    )
-
-    conn.commit()
-    conn.close()
-
-
-# タブ2: 振り返りページ
+# タブ2:振り返りページ
+# ここは元の仕組みは変わってないのですが、diaryとfeadbackに背景をつけるために最初にCSSを作っていたので紐付けがしてあります。
+# =============以下は全て使ってもらっても良いかもです。ちょっと説明しづらいです🥹
 
 #＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 
@@ -443,3 +392,5 @@ with tab2:
 
     st.markdown("#### 1年前")
     display_diary_feedback("", data_year)
+
+    #＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝

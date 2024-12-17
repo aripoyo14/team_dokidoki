@@ -269,7 +269,7 @@ with tab1:
 
     # 日記を入力する欄を入れる。openaiに渡したり、日記内容を反映した画像と合わせて日記を表示するためにdiary_inputに日記内容を代入する。
     diary_input = st.text_area(
-        "ちょっと違うところは手で修正してね。ごめんね。", 
+        "ちょっと違うところは手で修正してね。", 
         height=150,
         placeholder="",
         value=recognized_text  # 音声認識結果をデフォルト値として設定
