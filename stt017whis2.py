@@ -7,11 +7,11 @@ from openai import OpenAI
 # from dotenv import load_dotenv
 import base64
 
-#api_key = st.secrets["openai"]["api_key"]
-#client = OpenAI(api_key=api_key)
+api_key = st.secrets["openai"]["api_key"]
+client = OpenAI(api_key=api_key)
 
 ## 環境変数でOpenAI APIを使用するパターン
-client = OpenAI()
+#client = OpenAI()
 
 ## .envファイルでOpenAI APIを使用するパターン
 # .envファイルの内容を読み込む
