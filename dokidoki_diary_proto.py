@@ -25,7 +25,7 @@ with date_col:
 st.markdown("""
 <style>
 .stTextArea [data-baseweb=base-input] {
-    background-color: #ff3399;  # ここで希望の色を指定
+    background-color: #ffffff;  # ここで希望の色を指定
 }
 </style>
 """, unsafe_allow_html=True)
