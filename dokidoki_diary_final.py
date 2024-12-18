@@ -11,11 +11,11 @@ import sqlite3
 import base64
 
 # OpenAIクライアントの初期化（初期化って何だ？）
-#api_key = st.secrets["openai"]["api_key"]
-#client = OpenAI(api_key=api_key)
+api_key = st.secrets["openai"]["api_key"]
+client = OpenAI(api_key=api_key)
 
 ### 環境変数でOpenAI APIを使用するパターン
-client = OpenAI()
+#client = OpenAI()
 
 ### .envファイルでOpenAI APIを使用するパターン
 ## .envファイルの内容を読み込む
